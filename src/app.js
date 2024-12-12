@@ -30,8 +30,8 @@ app.use(
 
 app.use(
   cors({
-    origin: "http://localhost:5173" || "https://rentappdwwm.netlify.app/",
-    credentials: true, // Permet d'envoyer des cookies entre front-end et back-end
+    origin: ["http://localhost:5173", "https://rentappdwwm.netlify.app"],
+    credentials: true,
   })
 );
 
