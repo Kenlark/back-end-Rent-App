@@ -6,8 +6,10 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import mongoSanitize from "express-mongo-sanitize";
 import apiRateLimiter from "./middlewares/rate-limit.middleware.js";
-
-const app = express();
+import YAML from "yamljs";
+import { StatusCodes } from "http-status-codes";
+import swaggerUI from "swagger-ui-express";
+import helmet from "helmet";
 
 import connectDB from "./config/db.config.js";
 
@@ -20,8 +22,12 @@ import emailsRouter from "./routes/email.route.js";
 import resetPassword from "./routes/reset.password.route.js";
 import rentStatusRoute from "./routes/rent.status.route.js";
 
-app.use(apiRateLimiter);
+const swaggerDocument = YAML.load("./swagger.yaml");
+const app = express();
 
+app.use(helmet());
+app.use(apiRateLimiter);
+app.set("trust proxy", 1);
 app.use(
   mongoSanitize({
     replaceWith: "_", //caractères malveillant remplacés par "_"
@@ -48,6 +54,14 @@ cloudinary.config({
 });
 
 connectDB();
+
+app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerDocument));
+
+app.get("/", (_req, res) => {
+  res
+    .status(StatusCodes.OK)
+    .send("<h1>RENT APP</h1><a href='/api-docs'>Documentation</a>");
+});
 
 app.use("/api/v1/cars", carRouter);
 app.use("/api/v1/rent", rentRouter);
