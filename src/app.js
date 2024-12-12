@@ -30,7 +30,8 @@ app.use(
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://rentappdwwm.netlify.app"],
+    origin: ["http://localhost:5173", "https://rentappdwmm.netlify.app"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
