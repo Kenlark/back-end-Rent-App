@@ -51,39 +51,47 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  const user = await userService.get({ email: req.body.email });
+  try {
+    const user = await userService.get({ email: req.body.email });
 
-  if (!user) {
-    return res
-      .status(StatusCodes.UNAUTHORIZED)
-      .json({ message: "Votre Email ou votre mot de passe ne correspond pas" });
+    if (!user) {
+      return res.status(StatusCodes.UNAUTHORIZED).json({
+        message: "Votre Email ou votre mot de passe ne correspond pas",
+      });
+    }
+
+    const isPasswordCorrect = await user.comparePasswords(req.body.password);
+
+    if (!isPasswordCorrect) {
+      return res.status(StatusCodes.UNAUTHORIZED).json({
+        message: "Votre Email ou votre mot de passe ne correspond pas",
+      });
+    }
+
+    const token = user.createAccessToken();
+
+    res.cookie("token", token, {
+      httpOnly: true, // Sécurise le cookie (non accessible via JavaScript)
+      secure: process.env.NODE_ENV === "production", // Utilise le cookie sécurisé en production
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours
+      sameSite: "strict", // Protection contre les attaques CSRF
+    });
+
+    res.status(StatusCodes.OK).json({
+      user: {
+        UserId: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Erreur lors de la connexion:", error);
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: "Erreur interne du serveur" });
   }
-
-  const isPasswordCorrect = await user.comparePasswords(req.body.password);
-
-  if (!isPasswordCorrect) {
-    return res
-      .status(StatusCodes.UNAUTHORIZED)
-      .json({ message: "Votre Email ou votre mot de passe ne correspond pas" });
-  }
-
-  const token = user.createAccessToken();
-
-  res.cookie("token", token, {
-    httpOnly: true, // Sécurise le cookie (non accessible via JavaScript)
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours
-    sameSite: "strict", // Protection contre les attaques CSRF
-  });
-
-  res.status(StatusCodes.OK).json({
-    user: {
-      UserId: user._id,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-    },
-  });
 };
 
 const getAll = async (req, res) => {
@@ -100,7 +108,14 @@ const getAll = async (req, res) => {
 
 const getMe = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    // Si req.user est null (utilisateur déconnecté), retournez un message clair
+    if (!req.user) {
+      return res
+        .status(StatusCodes.UNAUTHORIZED)
+        .json({ message: "Utilisateur déconnecté" });
+    }
+
+    const userId = req.user.userID;
 
     const user = await userService.getSingleUser(userId);
 
@@ -115,6 +130,7 @@ const getMe = async (req, res) => {
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
+      role: user.role,
     });
   } catch (error) {
     console.error("Erreur lors de la récupération de l'utilisateur", error);
@@ -129,4 +145,20 @@ const logout = (req, res) => {
   res.status(StatusCodes.OK).json({ msg: "Deconnexion reussie" });
 };
 
-export { login, register, getAll, getMe, logout };
+const checkEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const existingUser = await userService.get({ email });
+
+    if (existingUser) {
+      return res.status(200).json({ exists: true });
+    }
+
+    res.status(200).json({ exists: false });
+  } catch (error) {
+    console.error("Erreur lors de la vérification de l'email :", error);
+    res.status(500).json({ message: "Erreur interne du serveur" });
+  }
+};
+
+export { checkEmail, login, register, getAll, getMe, logout };

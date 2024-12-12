@@ -12,18 +12,32 @@ const RentSchema = new mongoose.Schema(
       type: Date,
       required: [true, "Veuillez entrer une date de fin de location"],
     },
-    totalPrice: {
+    pricePerHour: {
       type: Number,
-      required: [true, "Veuillez entrer un prix de location"],
+      validate: {
+        validator: function (value) {
+          return Number.isInteger(value);
+        },
+        message: "La donnée entrée n'est pas un nombre entier",
+      },
+    },
+    pricePerDay: {
+      type: Number,
+      required: [true, "Le prix par jour est obligatoire"],
+      validate: {
+        validator: function (value) {
+          return Number.isInteger(value);
+        },
+        message: "La donnée entrée n'est pas un nombre entier",
+      },
     },
     status: {
       type: String,
-      enum: [
-        RENT_STATUS.AVAILABLE,
-        RENT_STATUS.IN_PROGRESS,
-        RENT_STATUS.UNAVAILABLE,
+      enum: [RENT_STATUS.AVAILABLE, RENT_STATUS.UNAVAILABLE],
+      required: [
+        true,
+        "Veuillez indiquez si le véhicule est disponible ou non",
       ],
-      default: RENT_STATUS.AVAILABLE,
     },
     idCar: {
       type: mongoose.Types.ObjectId,

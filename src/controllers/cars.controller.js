@@ -1,11 +1,12 @@
 import * as carsService from "../services/car.service.js";
+import * as rentService from "../services/rent.service.js";
 import { StatusCodes } from "http-status-codes";
 import checkAdmin from "../middlewares/checkAdmin.middleware.js";
-import cloudinary from "cloudinary";
+import { v2 as cloudinary } from "cloudinary";
+import mongoose from "mongoose";
 import { formatImage } from "../middlewares/multer.middleware.js";
 
 const create = async (req, res) => {
-  // Vérification si l'utilisateur est un admin
   checkAdmin(req, res, async () => {
     const carImages = req.files;
 
@@ -51,6 +52,25 @@ const create = async (req, res) => {
   });
 };
 
+const getById = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const car = await carsService.get(id);
+    if (!car) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ msg: "Voiture introuvable" });
+    }
+
+    res.status(StatusCodes.OK).json(car);
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ msg: "Erreur lors de la récupération du véhicule" });
+  }
+};
+
 const getAll = async (req, res) => {
   try {
     const allCars = await carsService.getAll();
@@ -63,6 +83,45 @@ const getAll = async (req, res) => {
   }
 };
 
+const update = async (req, res) => {
+  checkAdmin(req, res, async () => {
+    const { id } = req.params;
+
+    try {
+      const existingCar = await carsService.get(id);
+      if (!existingCar) {
+        return res
+          .status(StatusCodes.NOT_FOUND)
+          .json({ message: "Voiture non trouvée" });
+      }
+
+      const updatedCarData = {
+        ...req.body,
+        createdBy: req.user.userID,
+      };
+
+      const updatedCar = await carsService.update(id, updatedCarData);
+
+      // Synchroniser le pricePerDay dans les locations associées
+      if (updatedCar.pricePerDay) {
+        await rentService.updateByCarId(id, {
+          pricePerDay: updatedCar.pricePerDay,
+        });
+      }
+
+      res.status(StatusCodes.OK).json({ car: updatedCar });
+    } catch (error) {
+      console.error(
+        "Erreur lors de la mise à jour de la voiture :",
+        error.message
+      );
+      return res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ message: "Erreur lors de la mise à jour de la voiture" });
+    }
+  });
+};
+
 const remove = async (req, res) => {
   checkAdmin(req, res, async () => {
     const { id } = req.params;
@@ -73,20 +132,22 @@ const remove = async (req, res) => {
       throw new BadRequestError(`Format de l'id invalide : ${id}`);
     }
 
-    // Trouver la voiture à supprimer
     const car = await carsService.get(id);
     if (!car) {
       throw new NotFoundError(`Pas de voiture avec l'id : ${id}`);
     }
 
     try {
-      const images = car.images; // Récupère les images de la voiture
+      // Étape 1 : Supprimer les locations associées à cette voiture
+      await rentService.removeByCarId(id); // Appel au nouveau service pour supprimer toutes les locations
+
+      // Étape 2 : Supprimer la voiture et les images
+      const images = car.images;
       for (const image of images) {
         const publicId = image.url.split("/").pop().split(".")[0];
-        await cloudinary.uploader.destroy(`Rent-Images/${publicId}`);
+        await cloudinary.uploader.destroy(`Car-Images/${publicId}`);
       }
 
-      // Supprimer la voiture de MongoDB
       await carsService.remove(id);
 
       res
@@ -101,4 +162,4 @@ const remove = async (req, res) => {
   });
 };
 
-export { create, getAll, remove };
+export { create, getAll, remove, update, getById };

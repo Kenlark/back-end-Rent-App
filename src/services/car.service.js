@@ -17,7 +17,14 @@ const remove = async (id) => {
 };
 
 const update = async (id, data) => {
-  return await carsModel.findByIdAndUpdate(id, data, { new: true });
+  try {
+    const updatedCar = await carsModel.findByIdAndUpdate(id, data, {
+      new: true,
+    });
+    return updatedCar;
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour de la voiture :", error);
+  }
 };
 
 export { getAll, create, remove, update, get };
