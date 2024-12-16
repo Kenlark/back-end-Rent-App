@@ -141,8 +141,13 @@ const getMe = async (req, res) => {
 };
 
 const logout = (req, res) => {
-  res.clearCookie("token"); // Supprime le cookie
-  res.status(StatusCodes.OK).json({ msg: "Deconnexion reussie" });
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "none",
+    path: "/",
+  });
+  res.status(StatusCodes.OK).json({ msg: "Déconnexion réussie" });
 };
 
 const checkEmail = async (req, res) => {
