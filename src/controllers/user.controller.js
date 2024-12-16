@@ -111,7 +111,7 @@ const getMe = async (req, res) => {
     // Si req.user est null (utilisateur déconnecté), retournez un message clair
     if (!req.user) {
       return res
-        .status(StatusCodes.UNAUTHORIZED)
+        .status(StatusCodes.OK)
         .json({ message: "Utilisateur déconnecté" });
     }
 
