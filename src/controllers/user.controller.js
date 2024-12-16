@@ -20,7 +20,7 @@ const register = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7d
       sameSite: "strict",
     });
 
@@ -109,10 +109,9 @@ const getAll = async (req, res) => {
 const getMe = async (req, res) => {
   try {
     if (!req.user) {
-      console.log("Requête à /me sans utilisateur authentifié.");
       return res
         .status(StatusCodes.UNAUTHORIZED)
-        .json({ message: "Utilisateur déconnecté ou non authentifié" });
+        .json({ message: "Utilisateur déconnecté" });
     }
 
     const userId = req.user.userID;
@@ -133,7 +132,7 @@ const getMe = async (req, res) => {
       role: user.role,
     });
   } catch (error) {
-    console.error("Erreur lors de la récupération de l'utilisateur :", error);
+    console.error("Erreur lors de la récupération de l'utilisateur", error);
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ message: "Erreur du serveur", error: error.message });
