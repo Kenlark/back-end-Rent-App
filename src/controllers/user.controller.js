@@ -21,7 +21,7 @@ const register = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7d
-      sameSite: "strict",
+      sameSite: "none",
     });
 
     res.status(StatusCodes.CREATED).json({
@@ -71,10 +71,10 @@ const login = async (req, res) => {
     const token = user.createAccessToken();
 
     res.cookie("token", token, {
-      httpOnly: true, // Sécurise le cookie (non accessible via JavaScript)
-      secure: process.env.NODE_ENV === "production", // Utilise le cookie sécurisé en production
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours
-      sameSite: "strict", // Protection contre les attaques CSRF
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: "none",
     });
 
     res.status(StatusCodes.OK).json({
