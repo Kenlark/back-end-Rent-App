@@ -20,8 +20,8 @@ const register = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7d
-      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: "strict",
     });
 
     res.status(StatusCodes.CREATED).json({
@@ -74,7 +74,7 @@ const login = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: "none",
+      sameSite: "strict",
     });
 
     res.status(StatusCodes.OK).json({
@@ -108,11 +108,11 @@ const getAll = async (req, res) => {
 
 const getMe = async (req, res) => {
   try {
-    // Si req.user est null (utilisateur déconnecté), retournez un message clair
     if (!req.user) {
+      console.log("Requête à /me sans utilisateur authentifié.");
       return res
-        .status(StatusCodes.OK)
-        .json({ message: "Utilisateur déconnecté" });
+        .status(StatusCodes.UNAUTHORIZED)
+        .json({ message: "Utilisateur déconnecté ou non authentifié" });
     }
 
     const userId = req.user.userID;
@@ -133,7 +133,7 @@ const getMe = async (req, res) => {
       role: user.role,
     });
   } catch (error) {
-    console.error("Erreur lors de la récupération de l'utilisateur", error);
+    console.error("Erreur lors de la récupération de l'utilisateur :", error);
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .json({ message: "Erreur du serveur", error: error.message });
