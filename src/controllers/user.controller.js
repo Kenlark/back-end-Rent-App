@@ -21,7 +21,7 @@ const register = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7d
-      sameSite: "strict",
+      sameSite: "none",
     });
 
     res.status(StatusCodes.CREATED).json({
@@ -74,7 +74,7 @@ const login = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: "strict",
+      sameSite: "none",
     });
 
     res.status(StatusCodes.OK).json({
