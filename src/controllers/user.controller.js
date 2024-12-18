@@ -41,22 +41,12 @@ const register = async (req, res) => {
   } catch (error) {
     console.error("Erreur lors de l'inscription :", error);
     if (error instanceof z.ZodError) {
-      return res.status(StatusCodes.BAD_REQUEST).json({
-        message: "Des données invalides ont été soumises.",
-        errors: error.errors,
-      });
+      return res.status(StatusCodes.BAD_REQUEST).json({ errors: error.errors });
     }
 
-    if (error.message.includes("email")) {
-      return res.status(StatusCodes.CONFLICT).json({
-        message: "L'email est déjà utilisé.",
-      });
-    }
-
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-      message: "Une erreur interne du serveur est survenue.",
-      details: error.message,
-    });
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ message: "Erreur lors de l'inscription.", error: error.message });
   }
 };
 
