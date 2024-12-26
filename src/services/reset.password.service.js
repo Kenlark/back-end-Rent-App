@@ -2,7 +2,6 @@ import { StatusCodes } from "http-status-codes";
 import jwt from "jsonwebtoken";
 import User from "../models/users.model.js";
 import { Resend } from "resend";
-import bcrypt from "bcryptjs";
 
 const resend = new Resend(process.env.API_KEY_RESEND);
 
@@ -26,7 +25,7 @@ const requestPasswordReset = async (req, res) => {
   user.resetPasswordToken = token;
   await user.save();
 
-  const resetLink = `http://localhost:5173/reset-password?token=${token}`;
+  const resetLink = `https://rentappdwwm.netlify.app/reset-password?token=${token}`;
 
   try {
     await resend.emails.send({
