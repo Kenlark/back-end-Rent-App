@@ -37,7 +37,7 @@ const requestPasswordReset = async (req, res) => {
     });
 
     res.status(StatusCodes.OK).json({
-      msg: "E-mail de réinitialisation de l'e-mail",
+      msg: "E-mail de réinitialisation envoyé",
     });
   } catch (error) {
     console.error("Erreur lors de l'envoi de l'e-mail:", error.message);
@@ -66,17 +66,13 @@ const resetPassword = async (token, newPassword) => {
     throw new Error("Token invalide ou expiré");
   }
 
-  // Hachez le nouveau mot de passe
-  const salt = await bcrypt.genSalt();
-  const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-  // Mettez à jour le mot de passe de l'utilisateur
-  user.password = hashedPassword;
+  // Met à jour le mot de passe avec le nouveau mot de passe (non haché, laissez le middleware gérer cela)
+  user.password = newPassword;
 
   user.resetPasswordToken = undefined; // Réinitialiser le token
   await user.save();
 
-  return "Mot de passe réinitialiser avec succès";
+  return "Mot de passe réinitialisé avec succès";
 };
 
 export { requestPasswordReset, resetPassword };
