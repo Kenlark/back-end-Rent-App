@@ -29,7 +29,7 @@ const requestPasswordReset = async (req, res) => {
 
   try {
     await resend.emails.send({
-      from: "kenzokerachi@hotmail.fr", // mettre le nom de domaine ici plus tard
+      from: "onboarding@resend.dev", // mettre le nom de domaine ici plus tard
       to: email,
       subject: "Réinitialisation de votre mot de passe",
       html: `<p>Cliquez sur ce lien pour réinitialiser votre mot de passe: </p><a href="${resetLink}">Réinitiliser mon mot de passe</a>`,
