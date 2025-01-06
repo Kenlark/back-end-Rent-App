@@ -28,11 +28,7 @@ const app = express();
 app.use(helmet());
 app.use(apiRateLimiter);
 app.set("trust proxy", 1);
-app.use(
-  mongoSanitize({
-    replaceWith: "_", //caractères malveillant remplacés par "_"
-  })
-);
+app.use(mongoSanitize());
 
 app.use(
   cors({
