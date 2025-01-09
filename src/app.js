@@ -32,7 +32,11 @@ app.use(mongoSanitize());
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://rentappdwwm.netlify.app"],
+    origin: [
+      "http://localhost:5173",
+      "https://rentappdwwm.netlify.app",
+      "https://677f843ffd6abd0810364667--clever-kheer-7e928a.netlify.app/",
+    ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
