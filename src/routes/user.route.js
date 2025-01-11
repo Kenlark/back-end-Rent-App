@@ -3,6 +3,7 @@ import * as userController from "../controllers/user.controller.js";
 import { LoginUserSchema, RegisterUserSchema } from "../auth/users.schema.js";
 import validate from "../middlewares/validation.middleware.js";
 import authenticateUser from "../middlewares/auth.middleware.js";
+import checkAdmin from "../middlewares/checkAdmin.middleware.js";
 
 const router = express.Router();
 
@@ -15,7 +16,7 @@ router.get("/", userController.getAll);
 
 router.post("/logout", userController.logout);
 
-router.delete("/:id", userController.deleteUser);
+router.delete("/:id", authenticateUser, checkAdmin, userController.deleteUser);
 
 router.post("/check-email", userController.checkEmail);
 
