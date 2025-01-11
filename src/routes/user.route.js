@@ -15,6 +15,8 @@ router.get("/", userController.getAll);
 
 router.post("/logout", userController.logout);
 
+router.delete("/:id", userController.deleteUser);
+
 router.post("/check-email", userController.checkEmail);
 
 export default router;

@@ -3,6 +3,7 @@ import * as userService from "../services/user.service.js";
 import { UnauthenticatedError } from "../errors/index.js";
 import { RegisterUserSchema } from "../auth/users.schema.js";
 import z from "zod";
+import checkAdmin from "../middlewares/checkAdmin.middleware.js";
 
 const register = async (req, res) => {
   try {
@@ -166,4 +167,33 @@ const checkEmail = async (req, res) => {
   }
 };
 
-export { checkEmail, login, register, getAll, getMe, logout };
+const deleteUser = async (req, res) => {
+  checkAdmin(req, res, async () => {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ message: `Format de l'id invalide : ${id}` });
+    }
+
+    try {
+      const user = await userService.getSingleUser(id);
+      if (!user) {
+        return res
+          .status(StatusCodes.NOT_FOUND)
+          .json({ message: `Pas d'utilisateur avec l'id : ${id}` });
+      }
+
+      await userService.remove(id);
+      res.status(StatusCodes.NO_CONTENT).send();
+    } catch (error) {
+      console.error("Erreur lors de la suppression de l'utilisateur :", error);
+      res
+        .status(StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({ message: "Erreur lors de la suppression de l'utilisateur" });
+    }
+  });
+};
+
+export { checkEmail, login, register, getAll, getMe, logout, deleteUser };
